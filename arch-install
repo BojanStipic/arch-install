@@ -122,6 +122,7 @@ install-aur() (
 
 install-rust() (
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    mkdir -p ~/.local/share/bash-completion/completions/
     rustup completions bash rustup > ~/.local/share/bash-completion/completions/rustup
     rustup completions bash cargo > ~/.local/share/bash-completion/completions/cargo
 )
@@ -133,11 +134,11 @@ init-user() (
     fi
     username="$1"
 
-    useradd -m -G wheel,docker,wireshark,uucp "$username"
+    useradd -m -G wheel,docker,uucp "$username"
     echo "* Set user password:"
     passwd "$username"
 
-    sed -i '/^# %wheel ALL=(ALL) ALL$/s/^# //' /etc/sudoers
+    sed -i '/^# %wheel ALL=(ALL:ALL) ALL$/s/^# //' /etc/sudoers
 
     runuser -u "$username" -- xdg-mime default 'org.gnome.Nautilus.desktop' 'inode/directory'
     runuser -u "$username" -- xdg-mime default 'mpv.desktop' 'x-content/video-dvd'

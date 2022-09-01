@@ -28,7 +28,7 @@ and it is possible to use only some of them as needed.
 
 . Connect to the internet:
 Ethernet:: Plug in the cable and you should be good to go.
-Wi-Fi:: Use `wifi-menu` to connect to the network.
+Wi-Fi:: Use `iwctl` to connect to the network.
 
 . Partition the disk:
 BIOS systems::
@@ -56,20 +56,20 @@ BIOS systems::
 +
 ```bash
 mkfs.ext4 BOOT_PARTITION
-mkfs.ext4 ROOT_PARTITION
+mkfs.ext4 /dev/mapper/root
 ```
 UEFI systems::
 +
 ```bash
 mkfs.fat -F 32 ESP
-mkfs.ext4 ROOT_PARTITION
+mkfs.ext4 /dev/mapper/root
 ```
 
 . Mount the partitions:
 BIOS systems::
 +
 ```bash
-mount ROOT_PARTITION /mnt
+mount /dev/mapper/root /mnt
 mount --mkdir BOOT_PARTITION /mnt/boot
 ```
 UEFI systems::
