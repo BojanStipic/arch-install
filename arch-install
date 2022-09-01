@@ -1,0 +1,178 @@
+#!/bin/bash
+
+bootstrap() (
+    echo "Installing base packages..."
+    pacman -Sy archlinux-keyring
+    pacstrap /mnt linux linux-firmware base base-devel bash-completion neovim networkmanager
+
+    echo "Generating fstab..."
+    genfstab -U /mnt >> /mnt/etc/fstab
+
+    echo "Bootstrap completed. Chroot into the new system using 'arch-chroot /mnt'."
+)
+
+configure() (
+    if (( $# != 1 )); then
+        echo "Usage: ${0##*/} configure HOSTNAME"
+        exit 1
+    fi
+    hostname="$1"
+
+    echo "* Set root password:"
+    passwd
+
+    echo "Configuring timezone..."
+    ln -sf /usr/share/zoneinfo/Europe/Belgrade /etc/localtime
+    hwclock --systohc
+
+    echo "Configuring locales..."
+    sed -i '/^#en_US.UTF-8 UTF-8/s/^#//' /etc/locale.gen
+    sed -i '/^#en_GB.UTF-8 UTF-8/s/^#//' /etc/locale.gen
+    sed -i '/^#sr_RS UTF-8/s/^#//' /etc/locale.gen
+    sed -i '/^#sr_RS@latin UTF-8/s/^#//' /etc/locale.gen
+    locale-gen
+    echo "LANG=en_US.UTF-8" > /etc/locale.conf
+
+    echo "Configuring network hostname..."
+    echo "$hostname" > /etc/hostname
+
+    echo "Configuring pacman..."
+    sed -i '/^#Color/s/^#//' /etc/pacman.conf
+    sed -i '/^#VerbosePkgLists/s/^#//' /etc/pacman.conf
+    sed -i -E 's/^#(MAKEFLAGS).*/\1="-j$(nproc)"/' /etc/makepkg.conf
+)
+
+initramfs() (
+    sed -i -E "s/^(HOOKS)=.*/\1=(base systemd autodetect keyboard modconf block sd-encrypt filesystems fsck)/" /etc/mkinitcpio.conf
+    mkinitcpio -P
+)
+
+bootloader-bios() (
+    if (( $# != 2 )); then
+        echo "Usage: ${0##*/} bootloader-bios GRUB_INSTALL_DISK ROOT_LUKS_PARTUUID"
+        exit 1
+    fi
+    grub_install_disk="$1"
+    root_luks_partuuid="$2"
+
+    pacman -S grub os-prober
+    grub-install "$grub_install_disk"
+    sed -i -E 's/^(GRUB_TIMEOUT)=.*/\1=1/' /etc/default/grub
+    sed -i -E 's/^(GRUB_TIMEOUT_STYLE)=.*/\1=hidden/' /etc/default/grub
+    sed -i -E "s/^(GRUB_CMDLINE_LINUX)=.*/\1=\"rd.luks.name=${root_luks_partuuid}=root rd.luks.options=discard\"/" /etc/default/grub
+    grub-mkconfig -o /boot/grub/grub.cfg
+
+    initramfs
+)
+
+bootloader-uefi() (
+    if (( $# != 1 )); then
+        echo "Usage: ${0##*/} bootloader-bios ROOT_LUKS_PARTUUID"
+        exit 1
+    fi
+    root_luks_partuuid="$1"
+
+    bootctl install
+
+    {
+        echo "default arch"
+        echo "editor no"
+    } >> /boot/loader/loader.conf
+
+    {
+        echo "title Arch Linux"
+        echo "linux /vmlinuz-linux"
+        echo "initrd /intel-ucode.img"
+        echo "initrd /initramfs-linux.img"
+        echo "options rd.luks.name=${root_luks_partuuid}=root rd.luks.options=discard root=/dev/mapper/root rw quiet"
+    } >> /boot/loader/entries/arch.conf
+
+    {
+        echo "title Arch Linux (fallback initramfs)"
+        echo "linux /vmlinuz-linux"
+        echo "initrd /intel-ucode.img"
+        echo "initrd /initramfs-linux-fallback.img"
+        echo "options rd.luks.name=${root_luks_partuuid}=root rd.luks.options=discard root=/dev/mapper/root rw quiet"
+    } >> /boot/loader/entries/arch-fallback.conf
+
+    initramfs
+)
+
+install-base() (
+    if (( $# != 1 )); then
+        echo "Usage: ${0##*/} install-base PKGLIST"
+        exit 1
+    fi
+    pkglist="$1"
+
+    pacman -Syuu --needed - < "$pkglist"
+)
+
+install-aur() (
+    if (( $# != 1 )); then
+        echo "Usage: ${0##*/} install-aur PKGLIST"
+        exit 1
+    fi
+    pkglist="$1"
+
+    git clone "https://aur.archlinux.org/paru.git"
+    (cd paru && makepkg -si)
+    paru -Sa - < "$pkglist"
+)
+
+install-rust() (
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    rustup completions bash rustup > ~/.local/share/bash-completion/completions/rustup
+    rustup completions bash cargo > ~/.local/share/bash-completion/completions/cargo
+)
+
+init-user() (
+    if (( $# != 1 )); then
+        echo "Usage: ${0##*/} init-user USERNAME"
+        exit 1
+    fi
+    username="$1"
+
+    useradd -m -G wheel,docker,wireshark,uucp "$username"
+    echo "* Set user password:"
+    passwd "$username"
+
+    sed -i '/^# %wheel ALL=(ALL) ALL$/s/^# //' /etc/sudoers
+
+    runuser -u "$username" -- xdg-mime default 'org.gnome.Nautilus.desktop' 'inode/directory'
+    runuser -u "$username" -- xdg-mime default 'mpv.desktop' 'x-content/video-dvd'
+)
+
+init-ssh() (
+    sed -i -E 's/^#(PermitRootLogin).*/\1 no/' /etc/ssh/sshd_config
+    sed -i -E 's/^#(PasswordAuthentication).*/\1 no/' /etc/ssh/sshd_config
+)
+
+init-systemd() (
+    systemctl enable fstrim.timer
+    systemctl enable cups
+    systemctl enable bluetooth
+    systemctl enable sshd
+    systemctl enable docker
+    # Required for IPP printer discovery and SAMBA share discovery
+    systemctl enable avahi-daemon
+    systemctl enable NetworkManager
+    systemctl enable gdm
+)
+
+case "$1" in
+    bootstrap) shift; bootstrap "$@" ;;
+    configure) shift; configure "$@" ;;
+    bootloader-bios) shift; bootloader-bios "$@" ;;
+    bootloader-uefi) shift; bootloader-uefi "$@" ;;
+    install-base) shift; install-base "$@" ;;
+    install-aur) shift; install-aur "$@" ;;
+    install-rust) shift; install-rust "$@" ;;
+    init-user) shift; init-user "$@" ;;
+    init-ssh) shift; init-ssh "$@" ;;
+    init-systemd) shift; init-systemd "$@" ;;
+    *)
+        echo "Unrecognized command"
+        exit 2
+        ;;
+esac

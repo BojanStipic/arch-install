@@ -1,0 +1,178 @@
+= arch-install
+:toc:
+:toc-placement!:
+:sectanchors:
+:sectnums:
+ifndef::env-github[:icons: font]
+ifdef::env-github[]
+:status:
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+Arch Linux installation script for my personal needs.
+
+toc::[]
+
+== Design
+
+This installation script has a modular design
+in order to make it easy to customize each individual installation.
+Script is divided into multiple subcommands,
+and it is possible to use only some of them as needed.
+
+== Prerequisites
+
+. Connect to the internet:
+Ethernet:: Plug in the cable and you should be good to go.
+Wi-Fi:: Use `wifi-menu` to connect to the network.
+
+. Partition the disk:
+BIOS systems::
++
+|===
+| Command | Partition table | Partitions
+| `cfdisk` | MBR | `/boot`, root
+|===
+UEFI systems::
++
+|===
+| Command | Partition table | Partitions
+| `cgdisk` | GPT | ESP, root
+|===
+
+. Encrypt the root partition:
++
+```bash
+cryptsetup luksFormat ROOT_PARTITION
+cryptsetup open ROOT_PARTITION root
+```
+
+. Format the partitions:
+BIOS systems::
++
+```bash
+mkfs.ext4 BOOT_PARTITION
+mkfs.ext4 ROOT_PARTITION
+```
+UEFI systems::
++
+```bash
+mkfs.fat -F 32 ESP
+mkfs.ext4 ROOT_PARTITION
+```
+
+. Mount the partitions:
+BIOS systems::
++
+```bash
+mount ROOT_PARTITION /mnt
+mount --mkdir BOOT_PARTITION /mnt/boot
+```
+UEFI systems::
++
+```bash
+mount ROOT_PARTITION /mnt
+mount --mkdir ESP /mnt/boot
+```
+
+== Usage
+
+. Bootstrap:
++
+```bash
+arch-install bootstrap
+```
++
+This subcommand installs the base packages and generates `fstab`.
+
+. Chroot into the new system:
++
+```bash
+arch-chroot /mnt
+```
+
+. Configure the system:
++
+```bash
+arch-install configure HOSTNAME
+```
++
+This subcommand does the following:
++
+** Sets the root password
+** Configures the timezone and locales
+** Configures the hostname
+** Configures `pacman`
+
+. Install the bootloader:
+BIOS systems::
++
+```bash
+arch-install bootloader-bios
+```
+UEFI systems::
++
+```bash
+arch-install bootloader-uefi
+```
+
+. Install official repository packages:
++
+```bash
+arch-install install-base
+```
+
+. Install AUR packages:
++
+```bash
+arch-install install-aur
+```
+
+. Install Rust:
++
+```bash
+arch-install install-rust
+```
+
+. Create a new user:
++
+```bash
+arch-install init-user USERNAME
+```
+
+. Configure SSH:
++
+```bash
+arch-install init-ssh
+```
+
+. Start Systemd services:
++
+```bash
+arch-install init-systemd
+```
++
+WARNING: Reboot before running this subcommand, because `systemctl` does not work in chroot
+
+== License
+
+....
+Copyright (C) 2022 Bojan Stipic
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+....
