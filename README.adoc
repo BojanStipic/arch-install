@@ -112,24 +112,24 @@ This subcommand does the following:
 BIOS systems::
 +
 ```bash
-arch-install bootloader-bios
+arch-install bootloader-bios GRUB_INSTALL_DISK ROOT_LUKS_PARTUUID
 ```
 UEFI systems::
 +
 ```bash
-arch-install bootloader-uefi
+arch-install bootloader-uefi ROOT_LUKS_PARTUUID
 ```
 
 . Install official repository packages:
 +
 ```bash
-arch-install install-base
+arch-install install-base PKGLIST
 ```
 
 . Install AUR packages:
 +
 ```bash
-arch-install install-aur
+arch-install install-aur PKGLIST
 ```
 
 . Install Rust:
