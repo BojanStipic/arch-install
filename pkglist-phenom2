@@ -60,6 +60,7 @@ gnome-characters
 gnome-chess
 gnome-clocks
 gnome-connections
+gnome-console
 gnome-contacts
 gnome-control-center
 gnome-dictionary
@@ -82,6 +83,7 @@ gnome-shell-extensions
 gnome-sound-recorder
 gnome-sudoku
 gnome-terminal
+gnome-text-editor
 gnome-themes-extra
 gnome-tweaks
 gnome-usage
@@ -148,7 +150,6 @@ mpv
 mutter
 nautilus
 neofetch
-neovide
 neovim
 networkmanager
 nfs-utils
@@ -174,7 +175,6 @@ pipewire-pulse
 pitivi
 pkgconf
 plantuml
-polari
 poppler
 quadrapassel
 ripgrep
@@ -201,7 +201,6 @@ tesseract-data-srp_latn
 texinfo
 totem
 traceroute
-tracker
 tree
 ttc-iosevka
 ttf-dejavu
