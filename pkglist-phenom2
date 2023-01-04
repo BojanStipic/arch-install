@@ -118,6 +118,7 @@ hyphen-en
 inkscape
 iptables-nft
 jdk-openjdk
+jdk17-openjdk
 jq
 kooha
 less
@@ -161,7 +162,6 @@ noto-fonts-emoji
 npm
 ntfs-3g
 ocrfeeder
-openjdk-doc
 openssh
 os-prober
 p7zip
@@ -192,6 +192,7 @@ simple-scan
 sound-juicer
 soundfont-fluid
 splix
+starship
 steam
 stow
 sudo
@@ -202,10 +203,9 @@ texinfo
 totem
 traceroute
 tree
-ttc-iosevka
 ttf-dejavu
-ttf-droid
 ttf-hack
+ttf-iosevka-nerd
 ttf-liberation
 ttf-roboto
 unzip
