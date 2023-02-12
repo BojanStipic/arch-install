@@ -4,12 +4,11 @@ arduino
 arduino-docs
 asciidoctor
 audacity
-autoconf
-automake
 avahi
+bandwhich
 base
+base-devel
 bash-completion
-binutils
 bison
 brasero
 cheese
@@ -39,7 +38,6 @@ exfat-utils
 f2fs-tools
 fakeroot
 fd
-file-roller
 firefox
 flex
 fragments
@@ -93,9 +91,9 @@ gnome-weather
 gnuchess
 gptfdisk
 graphviz
-groff
 grub
 gst-libav
+gst-plugin-pipewire
 gst-plugins-ugly
 gstreamer-vaapi
 gvfs
@@ -120,7 +118,6 @@ iptables-nft
 jdk-openjdk
 jdk17-openjdk
 jq
-kooha
 less
 lesspipe
 lib32-libva-mesa-driver
@@ -132,7 +129,6 @@ libreoffice-fresh
 libretro-bsnes
 libretro-mgba
 libretro-nestopia
-libtool
 libva-mesa-driver
 linux
 linux-firmware
@@ -140,7 +136,6 @@ lldb
 lm_sensors
 logrotate
 lsb-release
-m4
 magic-wormhole
 make
 man-db

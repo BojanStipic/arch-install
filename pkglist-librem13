@@ -1,12 +1,10 @@
 aisleriot
 asciidoctor
-autoconf
-automake
 avahi
 bandwhich
 base
+base-devel
 bash-completion
-binutils
 bison
 cheese
 clang
@@ -35,7 +33,6 @@ exfat-utils
 f2fs-tools
 fakeroot
 fd
-file-roller
 firefox
 flex
 fragments
@@ -88,9 +85,9 @@ gnome-weather
 gnuchess
 gptfdisk
 graphviz
-groff
 grub
 gst-libav
+gst-plugin-pipewire
 gst-plugins-ugly
 gstreamer-vaapi
 gvfs
@@ -116,7 +113,6 @@ iptables-nft
 jdk-openjdk
 jdk17-openjdk
 jq
-kooha
 less
 lesspipe
 libreoffice-fresh
@@ -127,7 +123,6 @@ lldb
 lm_sensors
 logrotate
 lsb-release
-m4
 magic-wormhole
 make
 man-db
