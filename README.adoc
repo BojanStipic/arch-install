@@ -35,48 +35,49 @@ BIOS systems::
 +
 |===
 | Command | Partition table | Partitions
-| `cfdisk` | MBR | `/boot`, root
+| `cfdisk` | MBR | BOOT_PARTITION, ENCRYPTED_ROOT_PARTITION
 |===
 UEFI systems::
 +
 |===
 | Command | Partition table | Partitions
-| `cgdisk` | GPT | ESP, root
+| `cgdisk` | GPT | ESP_PARTITION, ENCRYPTED_ROOT_PARTITION
 |===
 
 . Encrypt the root partition:
 +
 ```bash
-cryptsetup luksFormat ROOT_PARTITION
-cryptsetup open ROOT_PARTITION root
+cryptsetup luksFormat --label root-crypto ENCRYPTED_ROOT_PARTITION
+cryptsetup open /dev/disk/by-label/root-crypto root
 ```
 
 . Format the partitions:
 BIOS systems::
 +
 ```bash
-mkfs.ext4 BOOT_PARTITION
-mkfs.ext4 /dev/mapper/root
+mkfs.ext4 -L boot BOOT_PARTITION
+mkfs.ext4 -L root /dev/mapper/root
 ```
 UEFI systems::
 +
 ```bash
-mkfs.fat -F 32 ESP
-mkfs.ext4 /dev/mapper/root
+mkfs.fat -F 32 -n boot ESP_PARTITION
+mkfs.ext4 -L root /dev/mapper/root
 ```
 
 . Mount the partitions:
-BIOS systems::
 +
 ```bash
-mount /dev/mapper/root /mnt
-mount --mkdir BOOT_PARTITION /mnt/boot
+mount /dev/disk/by-label/root /mnt
+mount --mkdir /dev/disk/by-label/boot /mnt/boot
 ```
-UEFI systems::
+
+. Create a swap file:
 +
 ```bash
-mount ROOT_PARTITION /mnt
-mount --mkdir ESP /mnt/boot
+dd if=/dev/zero of=/mnt/swapfile bs=1M count=16k status=progress
+chmod 0600 /swapfile
+mkswap -U clear /swapfile
 ```
 
 == Usage
@@ -87,7 +88,7 @@ mount --mkdir ESP /mnt/boot
 arch-install bootstrap
 ```
 +
-This subcommand installs the base packages and generates `fstab`.
+This subcommand installs the base packages and generates the `fstab`/`crypttab`.
 
 . Chroot into the new system:
 +
@@ -112,12 +113,12 @@ This subcommand does the following:
 BIOS systems::
 +
 ```bash
-arch-install bootloader-bios GRUB_INSTALL_DISK ROOT_LUKS_PARTUUID
+arch-install bootloader-bios GRUB_INSTALL_DISK
 ```
 UEFI systems::
 +
 ```bash
-arch-install bootloader-uefi ROOT_LUKS_PARTUUID
+arch-install bootloader-uefi
 ```
 
 . Install official repository packages:

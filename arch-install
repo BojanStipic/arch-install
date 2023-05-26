@@ -5,8 +5,18 @@ bootstrap() (
     pacman -Sy archlinux-keyring
     pacstrap /mnt linux linux-firmware base base-devel bash-completion neovim networkmanager
 
-    echo "Generating fstab..."
-    genfstab -U /mnt >> /mnt/etc/fstab
+    echo "Generating fstab/crypttab..."
+    {
+        echo '# <file system> <dir> <type> <options> <dump> <pass>'
+        echo 'LABEL=root / ext4 defaults 0 1'
+        echo 'LABEL=boot /boot ext4 defaults 0 2'
+        echo '/swapfile none swap defaults 0 0'
+    } > /mnt/etc/fstab
+
+    {
+        echo '# <name> <device> <password> <options>'
+        echo 'root LABEL=root-crypto none discard,no-read-workqueue,no-write-workqueue,fido2-device=auto'
+    } > /mnt/etc/crypttab.initramfs
 
     echo "Bootstrap completed. Chroot into the new system using 'arch-chroot /mnt'."
 )
@@ -18,10 +28,10 @@ configure() (
     fi
     hostname="$1"
 
-    echo "* Set root password:"
+    echo "* Set the root password:"
     passwd
 
-    echo "Configuring timezone..."
+    echo "Configuring the timezone..."
     ln -sf /usr/share/zoneinfo/Europe/Belgrade /etc/localtime
     hwclock --systohc
 
@@ -33,45 +43,38 @@ configure() (
     locale-gen
     echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
-    echo "Configuring network hostname..."
+    echo "Configuring the network hostname..."
     echo "$hostname" > /etc/hostname
 
     echo "Configuring pacman..."
     sed -i '/^#Color/s/^#//' /etc/pacman.conf
     sed -i '/^#VerbosePkgLists/s/^#//' /etc/pacman.conf
+    sed -i -E 's/^(ParallelDownloads).*/\1 = 5/' /etc/pacman.conf
     sed -i -E 's/^#(MAKEFLAGS).*/\1="-j$(nproc)"/' /etc/makepkg.conf
 )
 
 initramfs() (
-    sed -i -E "s/^(HOOKS)=.*/\1=(base systemd autodetect keyboard modconf block sd-encrypt filesystems fsck)/" /etc/mkinitcpio.conf
+    sed -i -E "s/^(HOOKS).*/\1=(base systemd autodetect keyboard modconf sd-vconsole block sd-encrypt filesystems fsck)/" /etc/mkinitcpio.conf
     mkinitcpio -P
 )
 
 bootloader-bios() (
-    if (( $# != 2 )); then
-        echo "Usage: ${0##*/} bootloader-bios GRUB_INSTALL_DISK ROOT_LUKS_PARTUUID"
+    if (( $# != 1 )); then
+        echo "Usage: ${0##*/} bootloader-bios GRUB_INSTALL_DISK"
         exit 1
     fi
     grub_install_disk="$1"
-    root_luks_partuuid="$2"
 
     pacman -S grub os-prober
     grub-install "$grub_install_disk"
-    sed -i -E 's/^(GRUB_TIMEOUT)=.*/\1=1/' /etc/default/grub
-    sed -i -E 's/^(GRUB_TIMEOUT_STYLE)=.*/\1=hidden/' /etc/default/grub
-    sed -i -E "s/^(GRUB_CMDLINE_LINUX)=.*/\1=\"rd.luks.name=${root_luks_partuuid}=root rd.luks.options=discard\"/" /etc/default/grub
+    sed -i -E 's/^(GRUB_TIMEOUT).*/\1=1/' /etc/default/grub
+    sed -i -E 's/^(GRUB_TIMEOUT_STYLE).*/\1=hidden/' /etc/default/grub
     grub-mkconfig -o /boot/grub/grub.cfg
 
     initramfs
 )
 
 bootloader-uefi() (
-    if (( $# != 1 )); then
-        echo "Usage: ${0##*/} bootloader-bios ROOT_LUKS_PARTUUID"
-        exit 1
-    fi
-    root_luks_partuuid="$1"
-
     bootctl install
 
     {
@@ -84,7 +87,7 @@ bootloader-uefi() (
         echo "linux /vmlinuz-linux"
         echo "initrd /intel-ucode.img"
         echo "initrd /initramfs-linux.img"
-        echo "options rd.luks.name=${root_luks_partuuid}=root rd.luks.options=discard root=/dev/mapper/root rw quiet"
+        echo "options root=LABEL=root rw quiet"
     } >> /boot/loader/entries/arch.conf
 
     {
@@ -92,7 +95,7 @@ bootloader-uefi() (
         echo "linux /vmlinuz-linux"
         echo "initrd /intel-ucode.img"
         echo "initrd /initramfs-linux-fallback.img"
-        echo "options rd.luks.name=${root_luks_partuuid}=root rd.luks.options=discard root=/dev/mapper/root rw quiet"
+        echo "options root=LABEL=root rw quiet"
     } >> /boot/loader/entries/arch-fallback.conf
 
     initramfs
@@ -135,7 +138,7 @@ init-user() (
     username="$1"
 
     useradd -m -G wheel,docker,uucp "$username"
-    echo "* Set user password:"
+    echo "* Set the user password:"
     passwd "$username"
 
     sed -i '/^# %wheel ALL=(ALL:ALL) ALL$/s/^# //' /etc/sudoers
