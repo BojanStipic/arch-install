@@ -39,6 +39,7 @@ f2fs-tools
 fakeroot
 fd
 firefox
+flatpak
 flex
 fragments
 fzf
@@ -124,6 +125,7 @@ lib32-libva-mesa-driver
 lib32-mesa
 lib32-mesa-vdpau
 lib32-vulkan-radeon
+libfido2
 libpng12
 libreoffice-fresh
 libretro-bsnes
@@ -136,7 +138,6 @@ lldb
 lm_sensors
 logrotate
 lsb-release
-magic-wormhole
 make
 man-db
 man-pages
@@ -215,5 +216,5 @@ xdg-desktop-portal
 xdg-user-dirs-gtk
 yarn
 yelp
-youtube-dl
+yt-dlp
 zip

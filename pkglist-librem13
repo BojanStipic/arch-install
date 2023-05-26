@@ -34,6 +34,7 @@ f2fs-tools
 fakeroot
 fd
 firefox
+flatpak
 flex
 fragments
 fzf
@@ -115,6 +116,7 @@ jdk17-openjdk
 jq
 less
 lesspipe
+libfido2
 libreoffice-fresh
 libvdpau-va-gl
 linux
@@ -123,7 +125,6 @@ lldb
 lm_sensors
 logrotate
 lsb-release
-magic-wormhole
 make
 man-db
 man-pages
@@ -194,5 +195,5 @@ xdg-desktop-portal
 xdg-user-dirs-gtk
 yarn
 yelp
-youtube-dl
+yt-dlp
 zip
