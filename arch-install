@@ -28,9 +28,6 @@ configure() (
     fi
     hostname="$1"
 
-    echo "* Set the root password:"
-    passwd
-
     echo "Configuring the timezone..."
     ln -sf /usr/share/zoneinfo/Europe/Belgrade /etc/localtime
     hwclock --systohc
