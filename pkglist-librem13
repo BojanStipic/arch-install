@@ -6,7 +6,6 @@ base
 base-devel
 bash-completion
 bison
-cheese
 clang
 cmus
 cryptsetup
@@ -25,11 +24,9 @@ dosfstools
 drawing
 e2fsprogs
 easytag
-eog
-eog-plugins
 evince
-exa
 exfatprogs
+eza
 f2fs-tools
 fakeroot
 fd
@@ -114,6 +111,7 @@ iptables-nft
 jdk-openjdk
 jdk17-openjdk
 jq
+just
 less
 lesspipe
 libfido2
@@ -124,7 +122,9 @@ linux-firmware
 lldb
 lm_sensors
 logrotate
+loupe
 lsb-release
+magic-wormhole
 make
 man-db
 man-pages
@@ -168,6 +168,7 @@ seahorse-nautilus
 shellcheck
 signal-desktop
 simple-scan
+snapshot
 soundfont-fluid
 starship
 stow
@@ -180,6 +181,7 @@ tree
 ttf-dejavu
 ttf-hack
 ttf-iosevka-nerd
+ttf-iosevkaterm-nerd
 ttf-liberation
 ttf-roboto
 unzip
