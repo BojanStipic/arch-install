@@ -13,156 +13,291 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-Arch Linux installation script for my personal needs.
+Installation guide for Arch GNU/Linux with Btrfs, RAID1 and dm-crypt full disk encryption.
 
 toc::[]
 
-== Design
-
-This installation script has a modular design
-in order to make it easy to customize each individual installation.
-Script is divided into multiple subcommands,
-and it is possible to use only some of them as needed.
-
 == Prerequisites
 
-. Connect to the internet:
+Download an installation image and copy it to a USB flash drive:
+
+```bash
+cp archlinux.iso /dev/disk/by-id/usb-…
+sync
+reboot
+```
+
+Use prepared installation medium to boot into the live environment.
+
+== Connect to the internet:
+
 Ethernet:: Plug in the cable and you should be good to go.
-Wi-Fi:: Use `iwctl` to connect to the network.
+Wi-Fi:: Use `iwctl` to connect to a network.
 
-. Partition the disk:
-BIOS systems::
-+
-|===
-| Command | Partition table | Partitions
-| `cfdisk` | MBR | BOOT_PARTITION, ENCRYPTED_ROOT_PARTITION
-|===
+== Disk setup
+
+=== Setup the partition table
+
+UEFI systems:: Use `gdisk` and create a GPT partition table
+BIOS systems:: Use `fdisk` and create a MBR partition table
+
+=== Setup the boot partition
+
 UEFI systems::
-+
-|===
-| Command | Partition table | Partitions
-| `cgdisk` | GPT | ESP_PARTITION, ENCRYPTED_ROOT_PARTITION
-|===
-
-. Encrypt the root partition:
-+
-```bash
-cryptsetup luksFormat --label root-crypto ENCRYPTED_ROOT_PARTITION
-cryptsetup open /dev/disk/by-label/root-crypto root
-```
-
-. Format the partitions:
+.. Create EFI partition of type `00ef` that has at least 1 GB of space
+.. Format the partition using FAT32 file system: `mkfs.fat -F 32 -n boot /dev/sdXY`
 BIOS systems::
-+
-```bash
-mkfs.ext4 -L boot BOOT_PARTITION
-mkfs.ext4 -L root /dev/mapper/root
-```
-UEFI systems::
-+
-```bash
-mkfs.fat -F 32 -n boot ESP_PARTITION
-mkfs.ext4 -L root /dev/mapper/root
-```
+.. Create boot partition of type `0083` that has at least 1 GB of space
+.. Format the partition using Ext4 file system: `mkfs.ext4 -L boot /dev/sdXY`
 
-. Mount the partitions:
-+
+=== Setup the main partitions
+
+Use the rest of unallocated space on all of the remaining drives to create
+partitions of type `0083`.
+
+Encrypt all partitions using dm-crypt:
+
 ```bash
-mount /dev/disk/by-label/root /mnt
-mount --mkdir /dev/disk/by-label/boot /mnt/boot
+cp /dev/urandom /dev/sdXY
+cryptsetup luksFormat --type luks2 --label main-crypto1 /dev/sdXY
+cryptsetup open /dev/disk/by-label/main-crypto1 main1
 ```
 
-. Create a swap file:
-+
+Format all partitions using Btrfs file system and add them to Btrfs RAID1:
+
 ```bash
-dd if=/dev/zero of=/mnt/swapfile bs=1M count=16k status=progress
-chmod 0600 /swapfile
-mkswap -U clear /swapfile
+mkfs.btrfs \
+    -L main \
+    --metadata raid1 \
+    --data raid1 \
+    /dev/mapper/main[1-X]
 ```
 
-== Usage
+TIP: RAID1 stores exactly 2 redundant copies of data/metadata, even when there
+are more than 2 disks added to the array, so the space utilization is always 50%.
+This allows 1 disk to fail without any data loss.
+If 3 or 4 redundant copies are desired, use RAID1C3 and RAID1C4 respectively
+instead.
+For more details on all supported RAID profiles see
+https://btrfs.readthedocs.io/en/latest/mkfs.btrfs.html#profiles[man mkfs.btrfs].
+Use
+https://carfax.org.uk/btrfs-usage/[btrfs disk usage calculator]
+to calculate available disk space for a given configuration.
 
-. Bootstrap:
-+
+Create Btrfs subvolumes:
+
 ```bash
-arch-install bootstrap
+mount --mkdir LABEL=main /mnt
+cd /mnt
+btrfs subvolume create @
+btrfs subvolume create @home
+btrfs subvolume create @snapshots
+btrfs subvolume create @swap
+umount /mnt
 ```
-+
-This subcommand installs the base packages and generates the `fstab`/`crypttab`.
 
-. Chroot into the new system:
-+
+== Mount the partitions
+
+```bash
+mount --mkdir LABEL=main -o noatime,compress=zstd,subvol=@ /mnt
+mount --mkdir LABEL=main -o noatime,compress=zstd,subvol=@home /mnt/home
+mount --mkdir LABEL=main -o noatime,compress=zstd,subvol=@snapshots /mnt/.snapshots
+mount --mkdir LABEL=main -o noatime,compress=zstd,subvol=@swap /mnt/swap
+btrfs filesystem mkswapfile --size 16G /mnt/swap/swapfile
+swapon /mnt/swap/swapfile
+mount --mkdir LABEL=boot /mnt/boot
+```
+
+== Bootstrap the system
+
+Install the base packages:
+
+```bash
+pacman -Sy archlinux-keyring
+pacstrap -K /mnt \
+    linux \
+    linux-firmware \
+    base \
+    base-devel \
+    btrfs-progs \
+    bash-completion \
+    neovim \
+    zellij \
+    networkmanager
+```
+
+Generate `fstab`:
+
+```bash
+{
+    echo '# <file system> <dir> <type> <options> <dump> <pass>'
+    echo 'LABEL=main / btrfs noatime,compress=zstd,subvol=@ 0 0'
+    echo 'LABEL=main /home btrfs noatime,compress=zstd,subvol=@home 0 0'
+    echo 'LABEL=main /.snapshots btrfs noatime,compress=zstd,subvol=@snapshots 0 0'
+    echo 'LABEL=main /swap btrfs noatime,compress=zstd,subvol=@swap 0 0'
+    echo '/swap/swapfile none swap defaults 0 0'
+    # On UEFI systems
+    echo 'LABEL=boot /boot vfat defaults 0 2'
+    # On BIOS systems
+    echo 'LABEL=boot /boot ext4 defaults 0 2'
+} > /mnt/etc/fstab
+```
+
+Generate `crypttab.initramfs`:
+
+```bash
+{
+    echo '# <name> <device> <password> <options>'
+    echo 'main1 LABEL=main-crypto1 none discard,no-read-workqueue,no-write-workqueue'
+    echo 'main2 LABEL=main-crypto2 none discard,no-read-workqueue,no-write-workqueue'
+    # …
+} > /mnt/etc/crypttab.initramfs
+```
+
+Chroot into the new system:
+
 ```bash
 arch-chroot /mnt
 ```
 
-. Configure the system:
-+
-```bash
-arch-install configure HOSTNAME
-```
-+
-This subcommand does the following:
-+
-** Sets the root password
-** Configures the timezone and locales
-** Configures the hostname
-** Configures `pacman`
+== Generate initramfs
 
-. Install the bootloader:
-BIOS systems::
-+
 ```bash
-arch-install bootloader-bios GRUB_INSTALL_DISK
+sed -i -E "s/^(HOOKS).*/\1=(base systemd keyboard autodetect modconf sd-vconsole kms block sd-encrypt filesystems fsck)/" /etc/mkinitcpio.conf
+mkinitcpio -P
 ```
+
+== Setup a bootloader
+
 UEFI systems::
 +
 ```bash
-arch-install bootloader-uefi
-```
+bootctl install
 
-. Install official repository packages:
+{
+    echo "default arch"
+    echo "editor no"
+} >> /boot/loader/loader.conf
+
+{
+    echo "title Arch GNU/Linux"
+    echo "linux /vmlinuz-linux"
+    echo "initrd /intel-ucode.img"
+    echo "initrd /initramfs-linux.img"
+    echo "options root=LABEL=main rootflags=subvol=@,compress=zstd,noatime rw quiet"
+} >> /boot/loader/entries/arch.conf
+
+{
+    echo "title Arch GNU/Linux (fallback initramfs)"
+    echo "linux /vmlinuz-linux"
+    echo "initrd /intel-ucode.img"
+    echo "initrd /initramfs-linux-fallback.img"
+    echo "options root=LABEL=main rootflags=subvol=@,compress=zstd,noatime rw quiet"
+} >> /boot/loader/entries/arch-fallback.conf
+```
+BIOS systems::
 +
 ```bash
-arch-install install-base PKGLIST
+pacman -S grub os-prober
+grub-install /dev/sdXY
+sed -i -E 's/^(GRUB_TIMEOUT).*/\1=1/' /etc/default/grub
+sed -i -E 's/^(GRUB_TIMEOUT_STYLE).*/\1=hidden/' /etc/default/grub
+grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
-. Install AUR packages:
-+
+== Configure the system:
+
+Timezone:
+
 ```bash
-arch-install install-aur PKGLIST
+ln -sf /usr/share/zoneinfo/Europe/Belgrade /etc/localtime
+hwclock --systohc
 ```
 
-. Install Rust:
-+
+Locales:
+
 ```bash
-arch-install install-rust
+sed -i '/^#en_US.UTF-8 UTF-8/s/^#//' /etc/locale.gen
+sed -i '/^#en_GB.UTF-8 UTF-8/s/^#//' /etc/locale.gen
+sed -i '/^#sr_RS UTF-8/s/^#//' /etc/locale.gen
+sed -i '/^#sr_RS@latin UTF-8/s/^#//' /etc/locale.gen
+locale-gen
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
 ```
 
-. Create a new user:
-+
+Pacman:
+
 ```bash
-arch-install init-user USERNAME
+sed -i '/^#Color/s/^#//' /etc/pacman.conf
+sed -i '/^#VerbosePkgLists/s/^#//' /etc/pacman.conf
+sed -i -E 's/^(ParallelDownloads).*/\1 = 5/' /etc/pacman.conf
+sed -i -E 's/^#(MAKEFLAGS).*/\1="-j$(nproc)"/' /etc/makepkg.conf
 ```
 
-. Configure SSH:
-+
+Network hostname:
+
 ```bash
-arch-install init-ssh
+echo librem13 > /etc/hostname
 ```
 
-. Start Systemd services:
-+
+User:
+
 ```bash
-arch-install init-systemd
+useradd -m -G wheel,docker,uucp bojan
+passwd bojan
+sed -i '/^# %wheel ALL=(ALL:ALL) ALL$/s/^# //' /etc/sudoers
+su bojan
 ```
-+
-WARNING: Reboot before running this subcommand, because `systemctl` does not work in chroot
+
+== Install packages
+
+Install packages from the official repository:
+
+```bash
+sudo pacman -Syuu --needed - < pkglist-XY
+```
+
+Install AUR packages:
+
+```bash
+git clone "https://aur.archlinux.org/paru.git"
+(cd paru && makepkg -si)
+paru -Sa - < pkglist-XY-aur
+```
+
+Install Rust:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+mkdir -p ~/.local/share/bash-completion/completions/
+rustup completions bash rustup > ~/.local/share/bash-completion/completions/rustup
+rustup completions bash cargo > ~/.local/share/bash-completion/completions/cargo
+```
+
+== Enable Systemd services
+
+```bash
+systemctl enable systemd-boot-update
+systemctl enable cups
+systemctl enable bluetooth
+sed -i -E 's/^#(PermitRootLogin).*/\1 no/' /etc/ssh/sshd_config
+sed -i -E 's/^#(PasswordAuthentication).*/\1 no/' /etc/ssh/sshd_config
+systemctl enable sshd
+systemctl enable docker
+# Required for IPP printer discovery and SAMBA share discovery
+systemctl enable avahi-daemon
+systemctl enable NetworkManager
+systemctl enable gdm
+```
+
+== Reboot
+
+Exit the chroot environment and reboot into the newly installed Arch GNU/Linux system.
 
 == License
 
 ....
-Copyright (C) 2022-2023 Bojan Stipic
+Copyright (C) 2022-2024 Bojan Stipic
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
