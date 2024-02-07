@@ -109,9 +109,9 @@ intel-media-driver
 intel-ucode
 iptables-nft
 jdk-openjdk
-jdk17-openjdk
 jq
 just
+kondo
 less
 lesspipe
 libfido2
@@ -173,6 +173,7 @@ soundfont-fluid
 starship
 stow
 sudo
+syncthing
 system-config-printer
 texinfo
 totem
@@ -197,4 +198,5 @@ xdg-user-dirs-gtk
 yarn
 yelp
 yt-dlp
+zellij
 zip
