@@ -205,7 +205,7 @@ sed -i -E 's/^(GRUB_TIMEOUT_STYLE).*/\1=hidden/' /etc/default/grub
 grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
-== Configure the system:
+== Configure the system
 
 Timezone:
 
@@ -277,17 +277,17 @@ rustup completions bash cargo > ~/.local/share/bash-completion/completions/cargo
 == Enable Systemd services
 
 ```bash
-systemctl enable systemd-boot-update
-systemctl enable cups
-systemctl enable bluetooth
-sed -i -E 's/^#(PermitRootLogin).*/\1 no/' /etc/ssh/sshd_config
-sed -i -E 's/^#(PasswordAuthentication).*/\1 no/' /etc/ssh/sshd_config
-systemctl enable sshd
-systemctl enable docker
+sudo systemctl enable systemd-boot-update
+sudo systemctl enable cups
+sudo systemctl enable bluetooth
+sudo sed -i -E 's/^#(PermitRootLogin).*/\1 no/' /etc/ssh/sshd_config
+sudo sed -i -E 's/^#(PasswordAuthentication).*/\1 no/' /etc/ssh/sshd_config
+sudo systemctl enable sshd
+sudo systemctl enable docker
 # Required for IPP printer discovery and SAMBA share discovery
-systemctl enable avahi-daemon
-systemctl enable NetworkManager
-systemctl enable gdm
+sudo systemctl enable avahi-daemon
+sudo systemctl enable NetworkManager
+sudo systemctl enable gdm
 ```
 
 == Reboot
