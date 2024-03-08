@@ -164,7 +164,7 @@ arch-chroot /mnt
 
 ```bash
 sed -i -E "s/^(HOOKS).*/\1=(base systemd keyboard autodetect modconf sd-vconsole kms block sd-encrypt filesystems fsck)/" /etc/mkinitcpio.conf
-mkinitcpio -P
+mkinitcpio --allpresets
 ```
 
 == Setup a bootloader
@@ -182,7 +182,6 @@ bootctl install
 {
     echo "title Arch GNU/Linux"
     echo "linux /vmlinuz-linux"
-    echo "initrd /intel-ucode.img"
     echo "initrd /initramfs-linux.img"
     echo "options root=LABEL=main rootflags=subvol=@,compress=zstd,noatime rw quiet"
 } >> /boot/loader/entries/arch.conf
@@ -190,7 +189,6 @@ bootctl install
 {
     echo "title Arch GNU/Linux (fallback initramfs)"
     echo "linux /vmlinuz-linux"
-    echo "initrd /intel-ucode.img"
     echo "initrd /initramfs-linux-fallback.img"
     echo "options root=LABEL=main rootflags=subvol=@,compress=zstd,noatime rw quiet"
 } >> /boot/loader/entries/arch-fallback.conf
@@ -243,7 +241,7 @@ echo librem13 > /etc/hostname
 User:
 
 ```bash
-useradd -m -G wheel,docker,uucp bojan
+useradd --create-home --groups wheel,docker,uucp bojan
 passwd bojan
 sed -i '/^# %wheel ALL=(ALL:ALL) ALL$/s/^# //' /etc/sudoers
 su bojan
@@ -283,6 +281,8 @@ sudo systemctl enable bluetooth
 sudo sed -i -E 's/^#(PermitRootLogin).*/\1 no/' /etc/ssh/sshd_config
 sudo sed -i -E 's/^#(PasswordAuthentication).*/\1 no/' /etc/ssh/sshd_config
 sudo systemctl enable sshd
+sudo useradd --system --create-home syncthing
+sudo systemctl enable syncthing@syncthing
 sudo systemctl enable docker
 # Required for IPP printer discovery and SAMBA share discovery
 sudo systemctl enable avahi-daemon
