@@ -163,7 +163,7 @@ arch-chroot /mnt
 == Generate initramfs
 
 ```bash
-sed -i -E "s/^(HOOKS).*/\1=(base systemd keyboard autodetect modconf sd-vconsole kms block sd-encrypt filesystems fsck)/" /etc/mkinitcpio.conf
+sed -i -E "s/^(HOOKS).*/\1=(systemd keyboard autodetect microcode modconf kms sd-vconsole sd-encrypt block filesystems fsck)/" /etc/mkinitcpio.conf
 mkinitcpio --allpresets
 ```
 
