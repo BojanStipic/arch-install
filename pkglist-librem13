@@ -1,4 +1,4 @@
-alacritty
+7zip
 asciidoctor
 avahi
 base
@@ -12,6 +12,7 @@ cryptsetup
 cups
 curl
 dconf-editor
+decibels
 deno
 diffutils
 discount
@@ -35,6 +36,7 @@ gcc
 gcolor3
 gdb
 gdm
+ghostty
 git
 gnome-backgrounds
 gnome-boxes
@@ -49,7 +51,6 @@ gnome-disk-utility
 gnome-font-viewer
 gnome-keyring
 gnome-logs
-gnome-photos
 gnome-remote-desktop
 gnome-screenshot
 gnome-session
@@ -124,7 +125,6 @@ noto-fonts
 noto-fonts-emoji
 npm
 openssh
-p7zip
 pacman-contrib
 patch
 pdfarranger
@@ -151,15 +151,14 @@ snapshot
 starship
 stow
 sudo
-syncthing
 system-config-printer
+tmux
 totem
 traceroute
 tree
+ttc-iosevka
 ttf-dejavu
 ttf-hack
-ttf-iosevka-nerd
-ttf-iosevkaterm-nerd
 ttf-liberation
 ttf-roboto
 unzip
@@ -174,5 +173,4 @@ xdg-desktop-portal
 xdg-user-dirs-gtk
 yelp
 yt-dlp
-zellij
 zip
