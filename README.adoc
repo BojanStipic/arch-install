@@ -50,7 +50,7 @@ BIOS systems::
 .. Create boot partition of type `0083` that has at least 1 GB of space
 .. Format the partition using Ext4 file system: `mkfs.ext4 -L boot /dev/sdXY`
 
-=== Setup the main partitions
+=== Setup the main partition
 
 Use the rest of unallocated space on all of the remaining drives to create
 partitions of type `0083`.
@@ -204,14 +204,14 @@ grub-mkconfig -o /boot/grub/grub.cfg
 
 == Configure the system
 
-Timezone:
+=== Timezone
 
 ```bash
 ln -sf /usr/share/zoneinfo/Europe/Belgrade /etc/localtime
 hwclock --systohc
 ```
 
-Locales:
+=== Locales
 
 ```bash
 sed -i '/^#en_US.UTF-8 UTF-8/s/^#//' /etc/locale.gen
@@ -222,7 +222,7 @@ locale-gen
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 ```
 
-Pacman:
+=== Pacman
 
 ```bash
 sed -i '/^#Color/s/^#//' /etc/pacman.conf
@@ -231,13 +231,13 @@ sed -i -E 's/^(ParallelDownloads).*/\1 = 5/' /etc/pacman.conf
 sed -i -E 's/^#(MAKEFLAGS).*/\1="-j$(nproc)"/' /etc/makepkg.conf
 ```
 
-Network hostname:
+=== Network hostname
 
 ```bash
 echo librem13 > /etc/hostname
 ```
 
-Network connection:
+=== Network connection
 
 NetworkManager::
 +
@@ -278,7 +278,7 @@ Systemd-networkd w/ static IP::
 } > /etc/systemd/network/ethernet.network
 ```
 
-User:
+=== User
 
 ```bash
 useradd --create-home --groups wheel,docker,uucp bojan
