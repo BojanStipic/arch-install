@@ -322,8 +322,6 @@ sudo systemctl enable bluetooth
 sudo sed -i -E 's/^#(PermitRootLogin).*/\1 no/' /etc/ssh/sshd_config
 sudo sed -i -E 's/^#(PasswordAuthentication).*/\1 no/' /etc/ssh/sshd_config
 sudo systemctl enable sshd
-sudo useradd --system --create-home syncthing
-sudo systemctl enable syncthing@syncthing
 sudo systemctl enable docker
 sudo systemctl enable gdm
 ```
