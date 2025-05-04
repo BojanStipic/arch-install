@@ -275,6 +275,7 @@ rustup completions bash cargo > ~/.local/share/bash-completion/completions/cargo
 == Enable Systemd services
 
 ```bash
+sudo systemctl enable btrfs-scrub@-.timer
 sudo systemctl enable systemd-boot-update
 sudo systemctl enable cups
 sudo systemctl enable bluetooth
