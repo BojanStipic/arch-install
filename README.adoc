@@ -59,8 +59,8 @@ Encrypt all partitions using dm-crypt:
 
 ```bash
 cp /dev/urandom /dev/sdXY
-cryptsetup luksFormat --type luks2 --label main-crypto1 /dev/sdXY
-cryptsetup open /dev/disk/by-label/main-crypto1 main1
+cryptsetup luksFormat --type luks2 --label main-crypto[1-N] /dev/sdXY
+cryptsetup open /dev/disk/by-label/main-crypto[1-N] main[1-N]
 ```
 
 Format all partitions using Btrfs file system and add them to Btrfs RAID1:
@@ -70,7 +70,7 @@ mkfs.btrfs \
     -L main \
     --metadata raid1 \
     --data raid1 \
-    /dev/mapper/main[1-X]
+    /dev/mapper/main[1-N]
 ```
 
 TIP: RAID1 stores exactly 2 redundant copies of data/metadata, even when there
@@ -228,7 +228,6 @@ echo "LANG=en_US.UTF-8" > /etc/locale.conf
 sed -i '/^#Color/s/^#//' /etc/pacman.conf
 sed -i '/^#VerbosePkgLists/s/^#//' /etc/pacman.conf
 sed -i -E 's/^(ParallelDownloads).*/\1 = 5/' /etc/pacman.conf
-sed -i -E 's/^#(MAKEFLAGS).*/\1="-j$(nproc)"/' /etc/makepkg.conf
 ```
 
 === Network hostname
