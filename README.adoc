@@ -92,7 +92,6 @@ cd /mnt
 btrfs subvolume create @
 btrfs subvolume create @home
 btrfs subvolume create @snapshots
-btrfs subvolume create @swap
 umount /mnt
 ```
 
@@ -101,10 +100,7 @@ umount /mnt
 ```bash
 mount --mkdir LABEL=main -o noatime,compress=zstd,subvol=@ /mnt
 mount --mkdir LABEL=main -o noatime,compress=zstd,subvol=@home /mnt/home
-mount --mkdir LABEL=main -o noatime,compress=zstd,subvol=@snapshots /mnt/.snapshots
-mount --mkdir LABEL=main -o noatime,compress=zstd,subvol=@swap /mnt/swap
-btrfs filesystem mkswapfile --size 16G /mnt/swap/swapfile
-swapon /mnt/swap/swapfile
+mount --mkdir LABEL=main -o noatime,compress=zstd,subvol=@snapshots /mnt/snapshots
 mount --mkdir LABEL=boot /mnt/boot
 ```
 
@@ -132,9 +128,7 @@ Generate `fstab`:
     echo '# <file system> <dir> <type> <options> <dump> <pass>'
     echo 'LABEL=main / btrfs noatime,compress=zstd,subvol=@ 0 0'
     echo 'LABEL=main /home btrfs noatime,compress=zstd,subvol=@home 0 0'
-    echo 'LABEL=main /.snapshots btrfs noatime,compress=zstd,subvol=@snapshots 0 0'
-    echo 'LABEL=main /swap btrfs noatime,compress=zstd,subvol=@swap 0 0'
-    echo '/swap/swapfile none swap defaults 0 0'
+    echo 'LABEL=main /snapshots btrfs noatime,compress=zstd,subvol=@snapshots 0 0'
     # On UEFI systems
     echo 'LABEL=boot /boot vfat defaults 0 2'
     # On BIOS systems
@@ -182,14 +176,14 @@ bootctl install
     echo "title Arch GNU/Linux"
     echo "linux /vmlinuz-linux"
     echo "initrd /initramfs-linux.img"
-    echo "options root=LABEL=main rootflags=subvol=@,compress=zstd,noatime rw quiet"
+    echo "options root=LABEL=main rootflags=subvol=@,compress=zstd,noatime rw zswap.enabled=0 quiet"
 } >> /boot/loader/entries/arch.conf
 
 {
     echo "title Arch GNU/Linux (fallback initramfs)"
     echo "linux /vmlinuz-linux"
     echo "initrd /initramfs-linux-fallback.img"
-    echo "options root=LABEL=main rootflags=subvol=@,compress=zstd,noatime rw quiet"
+    echo "options root=LABEL=main rootflags=subvol=@,compress=zstd,noatime rw zswap.enabled=0 quiet"
 } >> /boot/loader/entries/arch-fallback.conf
 ```
 BIOS systems::
@@ -323,6 +317,18 @@ sudo sed -i -E 's/^#(PasswordAuthentication).*/\1 no/' /etc/ssh/sshd_config
 sudo systemctl enable sshd
 sudo systemctl enable docker
 sudo systemctl enable gdm
+```
+
+== Enable swap on zram
+
+```bash
+{
+    echo '[zram0]'
+    echo 'zram-size = min(ram / 2, 4096)'
+    echo 'compression-algorithm = zstd'
+} >> /etc/systemd/zram-generator.conf
+sudo systemctl daemon-reload
+sudo systemctl start systemd-zram-setup@zram0.service
 ```
 
 == Reboot
