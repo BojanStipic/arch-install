@@ -324,7 +324,7 @@ sudo systemctl enable gdm
 ```bash
 {
     echo '[zram0]'
-    echo 'zram-size = min(ram / 2, 4096)'
+    echo 'zram-size = ram'
     echo 'compression-algorithm = zstd'
 } >> /etc/systemd/zram-generator.conf
 sudo systemctl daemon-reload
