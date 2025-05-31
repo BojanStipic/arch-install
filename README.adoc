@@ -310,6 +310,7 @@ rustup completions bash cargo > ~/.local/share/bash-completion/completions/cargo
 ```bash
 sudo systemctl enable btrfs-scrub@-.timer
 sudo systemctl enable systemd-boot-update
+sudo systemctl enable systemd-timesyncd
 sudo systemctl enable cups
 sudo systemctl enable bluetooth
 sudo sed -i -E 's/^#(PermitRootLogin).*/\1 no/' /etc/ssh/sshd_config
