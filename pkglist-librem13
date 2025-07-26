@@ -137,6 +137,7 @@ ripgrep
 rsync
 ruby-coderay
 ruby-rouge
+rustup
 rygel
 scanmem
 sd
@@ -151,6 +152,7 @@ sudo
 tmux
 traceroute
 tree
+tree-sitter-cli
 ttc-iosevka
 ttf-dejavu
 ttf-liberation

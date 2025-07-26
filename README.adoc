@@ -296,15 +296,6 @@ git clone "https://aur.archlinux.org/paru.git"
 paru -Sa - < pkglist-XY-aur
 ```
 
-Install Rust:
-
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-mkdir -p ~/.local/share/bash-completion/completions/
-rustup completions bash rustup > ~/.local/share/bash-completion/completions/rustup
-rustup completions bash cargo > ~/.local/share/bash-completion/completions/cargo
-```
-
 == Enable Systemd services
 
 ```bash
