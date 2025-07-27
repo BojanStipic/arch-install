@@ -300,6 +300,7 @@ paru -Sa - < pkglist-XY-aur
 
 ```bash
 sudo systemctl enable btrfs-scrub@-.timer
+sudo systemctl enable btrbk.timer
 sudo systemctl enable systemd-boot-update
 sudo systemctl enable systemd-timesyncd
 sudo systemctl enable cups
