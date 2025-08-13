@@ -7,8 +7,10 @@ base
 base-devel
 bison
 bottom
+btrbk
 btrfs-progs
 clang
+cmark
 croc
 cryptsetup
 cups
@@ -16,7 +18,6 @@ curl
 decibels
 deno
 diffutils
-discount
 dnsmasq
 docker
 docker-buildx
@@ -108,6 +109,7 @@ lsb-release
 make
 man-db
 man-pages
+mbuffer
 meson
 mpv
 mutter
@@ -141,7 +143,6 @@ rustup
 rygel
 scanmem
 sd
-shellcheck
 showtime
 signal-desktop
 simple-scan
@@ -156,7 +157,6 @@ tree-sitter-cli
 ttc-iosevka
 ttf-dejavu
 ttf-liberation
-ufw
 unzip
 usbutils
 vulkan-intel
