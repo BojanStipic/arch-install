@@ -299,6 +299,8 @@ paru -Sa - < pkglist-XY-aur
 == Enable Systemd services
 
 ```bash
+sudo sed -i -E 's/^(DEVICESCAN)$/\1 -a -o on -S on -n standby,q -s (S/../.././02|L/../../6/03) -m inbox@bojanstipic.com/' /etc/smartd.conf
+sudo systemctl enable smartd
 sudo systemctl enable btrfs-scrub@-.timer
 sudo systemctl enable btrbk.timer
 sudo systemctl enable systemd-boot-update
