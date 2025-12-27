@@ -1,5 +1,6 @@
 7zip
 adwaita-fonts
+android-udev
 asciidoctor
 asciidoctor-pdf
 avahi
@@ -31,7 +32,7 @@ eza
 f2fs-tools
 fastfetch
 fd
-firefox
+firewalld
 fish
 flex
 fragments
@@ -90,8 +91,8 @@ intel-media-driver
 intel-ucode
 iptables-nft
 jdk-openjdk
-jdk21-openjdk
 jq
+jujutsu
 just
 kondo
 less
@@ -159,6 +160,7 @@ ttf-dejavu
 ttf-liberation
 unzip
 usbutils
+vpl-gpu-rt
 vulkan-intel
 wget
 which
