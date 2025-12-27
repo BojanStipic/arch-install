@@ -121,7 +121,15 @@ pacstrap -K /mnt \
     tmux
 ```
 
-Generate `fstab`:
+Chroot into the new system:
+
+```bash
+arch-chroot /mnt
+```
+
+== Configure the system
+
+=== Generate `fstab`
 
 ```bash
 {
@@ -133,10 +141,10 @@ Generate `fstab`:
     echo 'LABEL=boot /boot vfat defaults 0 2'
     # On BIOS systems
     echo 'LABEL=boot /boot ext4 defaults 0 2'
-} > /mnt/etc/fstab
+} > /etc/fstab
 ```
 
-Generate `crypttab.initramfs`:
+=== Generate `crypttab.initramfs`
 
 ```bash
 {
@@ -144,23 +152,17 @@ Generate `crypttab.initramfs`:
     echo 'main1 LABEL=main-crypto1 none discard,no-read-workqueue,no-write-workqueue'
     echo 'main2 LABEL=main-crypto2 none discard,no-read-workqueue,no-write-workqueue'
     # …
-} > /mnt/etc/crypttab.initramfs
+} > /etc/crypttab.initramfs
 ```
 
-Chroot into the new system:
+=== Generate initramfs
 
 ```bash
-arch-chroot /mnt
-```
-
-== Generate initramfs
-
-```bash
-sed -i -E "s/^(HOOKS).*/\1=(systemd keyboard autodetect microcode modconf kms sd-vconsole sd-encrypt block filesystems fsck)/" /etc/mkinitcpio.conf
+sed -i -E "s/^(HOOKS).*/\1=(base systemd keyboard autodetect microcode modconf kms sd-vconsole sd-encrypt block filesystems fsck)/" /etc/mkinitcpio.conf
 mkinitcpio --allpresets
 ```
 
-== Setup a bootloader
+=== Setup a bootloader
 
 UEFI systems::
 +
@@ -196,16 +198,14 @@ sed -i -E 's/^(GRUB_TIMEOUT_STYLE).*/\1=hidden/' /etc/default/grub
 grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
-== Configure the system
-
-=== Timezone
+=== Configure timezone
 
 ```bash
 ln -sf /usr/share/zoneinfo/Europe/Belgrade /etc/localtime
 hwclock --systohc
 ```
 
-=== Locales
+=== Configure locales
 
 ```bash
 sed -i '/^#en_US.UTF-8 UTF-8/s/^#//' /etc/locale.gen
@@ -216,7 +216,7 @@ locale-gen
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 ```
 
-=== Pacman
+=== Configure Pacman
 
 ```bash
 sed -i '/^#Color/s/^#//' /etc/pacman.conf
@@ -224,13 +224,13 @@ sed -i '/^#VerbosePkgLists/s/^#//' /etc/pacman.conf
 sed -i -E 's/^(ParallelDownloads).*/\1 = 5/' /etc/pacman.conf
 ```
 
-=== Network hostname
+=== Configure network hostname
 
 ```bash
 echo librem13 > /etc/hostname
 ```
 
-=== Network connection
+=== Configure network connection
 
 NetworkManager::
 +
@@ -271,7 +271,7 @@ Systemd-networkd w/ static IP::
 } > /etc/systemd/network/ethernet.network
 ```
 
-=== User
+=== Create user
 
 ```bash
 useradd --create-home --groups wheel,docker,uucp bojan
@@ -280,7 +280,13 @@ sed -i '/^# %wheel ALL=(ALL:ALL) ALL$/s/^# //' /etc/sudoers
 su bojan
 ```
 
-== Install packages
+== Reboot
+
+Exit the chroot environment and reboot into the newly installed Arch GNU/Linux system.
+
+== Post-installation
+
+=== Install packages
 
 Install packages from the official repository:
 
@@ -296,25 +302,7 @@ git clone "https://aur.archlinux.org/paru.git"
 paru -Sa - < pkglist-XY-aur
 ```
 
-== Enable Systemd services
-
-```bash
-sudo sed -i -E 's/^(DEVICESCAN)$/\1 -a -o on -S on -n standby,q -s (S/../.././02|L/../../6/03) -m inbox@bojanstipic.com/' /etc/smartd.conf
-sudo systemctl enable smartd
-sudo systemctl enable btrfs-scrub@-.timer
-sudo systemctl enable btrbk.timer
-sudo systemctl enable systemd-boot-update
-sudo systemctl enable systemd-timesyncd
-sudo systemctl enable cups
-sudo systemctl enable bluetooth
-sudo sed -i -E 's/^#(PermitRootLogin).*/\1 no/' /etc/ssh/sshd_config
-sudo sed -i -E 's/^#(PasswordAuthentication).*/\1 no/' /etc/ssh/sshd_config
-sudo systemctl enable sshd
-sudo systemctl enable docker
-sudo systemctl enable gdm
-```
-
-== Enable swap on zram
+=== Enable swap on zram
 
 ```bash
 {
@@ -326,14 +314,86 @@ sudo systemctl daemon-reload
 sudo systemctl start systemd-zram-setup@zram0.service
 ```
 
-== Reboot
+=== Configure email
 
-Exit the chroot environment and reboot into the newly installed Arch GNU/Linux system.
+```bash
+{
+    echo 'defaults'
+    echo 'auth on'
+    echo 'tls on'
+    echo 'tls_starttls on'
+    echo 'syslog on'
+    echo
+    echo 'account proton'
+    echo 'host smtp.protonmail.ch'
+    echo 'port 587'
+    echo 'user no-reply@bojanstipic.com'
+    echo 'password example'
+    echo 'from no-reply@bojanstipic.com'
+    echo
+    echo 'account default : proton'
+} | sudo tee /etc/msmtprc
+```
+
+=== Enable backups
+
+```bash
+{
+    echo 'lockfile                   /var/lock/btrbk.lock'
+    echo 'transaction_syslog         local0'
+    echo 'stream_buffer              256m'
+    echo 'stream_compress            zstd'
+    echo
+    echo 'snapshot_create            onchange'
+    echo 'snapshot_dir               /snapshots/'
+    echo
+    echo 'subvolume    /'
+    echo '    snapshot_name root'
+    echo '    snapshot_preserve_min      1d'
+    echo '    snapshot_preserve          0h 7d'
+    echo
+    echo 'subvolume    /home'
+    echo '    snapshot_preserve_min      1d'
+    echo '    snapshot_preserve          0h 7d'
+    echo
+    echo 'subvolume    /data'
+    echo '    snapshot_preserve_min      1d'
+    echo '    snapshot_preserve          0h 7d 4w 12m 5y'
+} | sudo tee /etc/btrbk/btrbk.conf
+sudo systemctl enable --now btrbk.timer
+```
+
+=== Enable S.M.A.R.T.
+
+```bash
+sudo sed -i -E 's/^(DEVICESCAN)$/\1 -a -o on -S on -n standby,q -s (S/../.././02|L/../../6/03) -m inbox@bojanstipic.com/' /etc/smartd.conf
+sudo systemctl enable --now smartd
+```
+
+=== Enable SSH
+
+```bash
+sudo sed -i -E 's/^#(PermitRootLogin).*/\1 no/' /etc/ssh/sshd_config
+sudo sed -i -E 's/^#(PasswordAuthentication).*/\1 no/' /etc/ssh/sshd_config
+sudo systemctl enable --now sshd
+```
+
+=== Enable other Systemd services
+
+```bash
+sudo systemctl enable --now btrfs-scrub@-.timer
+sudo systemctl enable --now systemd-boot-update
+sudo systemctl enable --now systemd-timesyncd
+sudo systemctl enable --now docker
+sudo systemctl enable --now cups
+sudo systemctl enable --now bluetooth
+sudo systemctl enable --now gdm
+```
 
 == License
 
 ....
-Copyright (C) 2022-2025 Bojan Stipic
+Copyright (C) 2022-2026 Bojan Stipic
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
