@@ -16,8 +16,8 @@ croc
 cryptsetup
 cups
 curl
+ddcutil
 decibels
-deno
 diffutils
 dnsmasq
 docker
@@ -114,13 +114,16 @@ man-db
 man-pages
 mbuffer
 meson
+mise
 mpv
 mutter
 nautilus
 neovim
 networkmanager
 nfs-utils
+niri
 nmap
+noctalia
 nodejs
 notification-daemon
 noto-fonts
@@ -160,6 +163,7 @@ ttc-iosevka
 ttf-dejavu
 ttf-liberation
 unzip
+usage
 usbutils
 vpl-gpu-rt
 vulkan-intel
