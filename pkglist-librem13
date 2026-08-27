@@ -1,16 +1,13 @@
 7zip
-adwaita-fonts
 android-udev
 asciidoctor
 asciidoctor-pdf
 avahi
 base
 base-devel
-bison
 bottom
 btrbk
 btrfs-progs
-clang
 cmark
 croc
 cryptsetup
@@ -32,9 +29,9 @@ eza
 f2fs-tools
 fastfetch
 fd
+ffmpeg
 firewalld
 fish
-flex
 fragments
 fuse2
 fzf
@@ -66,7 +63,6 @@ gnome-tweaks
 gnome-user-share
 gnome-weather
 gptfdisk
-graphviz
 grub
 gst-libav
 gst-plugin-pipewire
@@ -82,9 +78,6 @@ gvfs-nfs
 gvfs-onedrive
 gvfs-smb
 gvfs-wsdd
-htop
-httpie
-hunspell-en_gb
 hunspell-en_us
 hurl
 hyperfine
@@ -105,7 +98,6 @@ libvdpau-va-gl
 linux
 linux-firmware
 lldb
-lm_sensors
 logrotate
 loupe
 lsb-release
@@ -125,7 +117,6 @@ niri
 nmap
 noctalia
 nodejs
-notification-daemon
 noto-fonts
 noto-fonts-emoji
 npm
@@ -173,6 +164,7 @@ whois
 wireplumber
 wl-clipboard
 xdg-desktop-portal
+xdg-desktop-portal-gnome
 xdg-user-dirs-gtk
 yt-dlp
 zip
