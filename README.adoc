@@ -209,11 +209,12 @@ hwclock --systohc
 
 ```bash
 sed -i '/^#en_US.UTF-8 UTF-8/s/^#//' /etc/locale.gen
-sed -i '/^#en_GB.UTF-8 UTF-8/s/^#//' /etc/locale.gen
-sed -i '/^#sr_RS UTF-8/s/^#//' /etc/locale.gen
-sed -i '/^#sr_RS@latin UTF-8/s/^#//' /etc/locale.gen
+sed -i '/^#en_SE.UTF-8 UTF-8/s/^#//' /etc/locale.gen
 locale-gen
-echo "LANG=en_US.UTF-8" > /etc/locale.conf
+{
+    echo 'LANG=en_SE.UTF-8'
+    echo 'LC_MESSAGES=en_US.UTF-8'
+} > /etc/locale.conf
 ```
 
 === Configure Pacman
