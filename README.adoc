@@ -275,7 +275,7 @@ Systemd-networkd w/ static IP::
 === Create user
 
 ```bash
-useradd --create-home --groups wheel,docker,uucp bojan
+useradd --create-home --groups wheel bojan
 passwd bojan
 sed -i '/^# %wheel ALL=(ALL:ALL) ALL$/s/^# //' /etc/sudoers
 su bojan
