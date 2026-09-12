@@ -287,18 +287,17 @@ su bojan
 === Register U2F/FIDO2 keys
 
 ```bash
-mkdir -p ~/.config/Yubico
 # Generate registration info for the first key
-pamu2fcfg > ~/.config/Yubico/u2f_keys
+pamu2fcfg | sudo tee /etc/u2f_keys
 # Append registration info for additional keys
-pamu2fcfg -n >> ~/.config/Yubico/u2f_keys
+pamu2fcfg --nouser | sudo tee --append /etc/u2f_keys
 ```
 
 === Configure PAM auth with U2F/FIDO2 keys
 
 ```bash
-sed -i -E '/^auth\s+include\s+system-local-login/i auth       sufficient   pam_u2f.so cue pinverification=1' /etc/pam.d/{login,greetd}
-sed -i -E '/^auth\s+include\s+system-auth/i auth        sufficient  pam_u2f.so cue' /etc/pam.d/sudo
+sed -i -E '/^auth\s+include\s+system-local-login/i auth       sufficient   pam_u2f.so authfile=/etc/u2f_keys cue pinverification=1' /etc/pam.d/{login,greetd}
+sed -i -E '/^auth\s+include\s+system-auth/i auth        sufficient  pam_u2f.so authfile=/etc/u2f_keys cue' /etc/pam.d/sudo
 ```
 
 == Reboot
