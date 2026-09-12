@@ -225,7 +225,6 @@ locale-gen
 ```bash
 sed -i '/^#Color/s/^#//' /etc/pacman.conf
 sed -i '/^#VerbosePkgLists/s/^#//' /etc/pacman.conf
-sed -i -E 's/^(ParallelDownloads).*/\1 = 5/' /etc/pacman.conf
 ```
 
 === Configure network hostname
