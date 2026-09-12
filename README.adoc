@@ -60,6 +60,7 @@ Encrypt all partitions using dm-crypt:
 ```bash
 cp /dev/urandom /dev/sdXY
 cryptsetup luksFormat --type luks2 --label main-crypto[1-N] /dev/sdXY
+systemd-cryptenroll --fido2-device=auto /dev/sdXY
 cryptsetup open /dev/disk/by-label/main-crypto[1-N] main[1-N]
 ```
 
@@ -116,6 +117,8 @@ pacstrap -K /mnt \
     base \
     base-devel \
     btrfs-progs \
+    libfido2 \
+    pam-u2f \
     fish \
     neovim \
     tmux
@@ -149,8 +152,8 @@ arch-chroot /mnt
 ```bash
 {
     echo '# <name> <device> <password> <options>'
-    echo 'main1 LABEL=main-crypto1 none discard,no-read-workqueue,no-write-workqueue'
-    echo 'main2 LABEL=main-crypto2 none discard,no-read-workqueue,no-write-workqueue'
+    echo 'main1 LABEL=main-crypto1 none discard,no-read-workqueue,no-write-workqueue,fido2-device=auto'
+    echo 'main2 LABEL=main-crypto2 none discard,no-read-workqueue,no-write-workqueue,fido2-device=auto'
     # …
 } > /etc/crypttab.initramfs
 ```
@@ -279,6 +282,23 @@ useradd --create-home --groups wheel bojan
 passwd bojan
 sed -i '/^# %wheel ALL=(ALL:ALL) ALL$/s/^# //' /etc/sudoers
 su bojan
+```
+
+=== Register U2F/FIDO2 keys
+
+```bash
+mkdir -p ~/.config/Yubico
+# Generate registration info for the first key
+pamu2fcfg > ~/.config/Yubico/u2f_keys
+# Append registration info for additional keys
+pamu2fcfg -n >> ~/.config/Yubico/u2f_keys
+```
+
+=== Configure PAM auth with U2F/FIDO2 keys
+
+```bash
+sed -i -E '/^auth\s+include\s+system-local-login/i auth       sufficient   pam_u2f.so cue pinverification=1' /etc/pam.d/{login,greetd}
+sed -i -E '/^auth\s+include\s+system-auth/i auth        sufficient  pam_u2f.so cue' /etc/pam.d/sudo
 ```
 
 == Reboot

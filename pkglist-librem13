@@ -124,6 +124,7 @@ npm
 openssh
 otf-atkinson-hyperlegible
 pacman-contrib
+pam-u2f
 papers
 patch
 perl-image-exiftool
