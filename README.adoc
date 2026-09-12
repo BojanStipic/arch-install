@@ -379,6 +379,24 @@ sudo sed -i -E 's/^#(PasswordAuthentication).*/\1 no/' /etc/ssh/sshd_config
 sudo systemctl enable --now sshd
 ```
 
+=== Enable login manager
+
+```bash
+{
+    echo '[terminal]'
+    echo 'vt = 1'
+    echo
+    echo '[initial_session]'
+    echo 'command = "niri-session"'
+    echo 'user = "bojan"'
+    echo
+    echo '[default_session]'
+    echo 'command = "agreety --cmd niri-session"'
+    echo 'user = "greeter"'
+} | sudo tee /etc/greetd/config.toml
+sudo systemctl enable --now greetd
+```
+
 === Enable other Systemd services
 
 ```bash
@@ -388,7 +406,6 @@ sudo systemctl enable --now systemd-timesyncd
 sudo systemctl enable --now docker
 sudo systemctl enable --now cups
 sudo systemctl enable --now bluetooth
-sudo systemctl enable --now gdm
 ```
 
 == License
