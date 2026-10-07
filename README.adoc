@@ -147,15 +147,15 @@ arch-chroot /mnt
 } > /etc/fstab
 ```
 
-=== Generate `crypttab.initramfs`
+=== Generate `crypttab`
 
 ```bash
 {
     echo '# <name> <device> <password> <options>'
-    echo 'main1 LABEL=main-crypto1 none discard,no-read-workqueue,no-write-workqueue,fido2-device=auto'
-    echo 'main2 LABEL=main-crypto2 none discard,no-read-workqueue,no-write-workqueue,fido2-device=auto'
+    echo 'main1 LABEL=main-crypto1 none x-initrd.attach,discard,no-read-workqueue,no-write-workqueue,fido2-device=auto'
+    echo 'main2 LABEL=main-crypto2 none x-initrd.attach,discard,no-read-workqueue,no-write-workqueue,fido2-device=auto'
     # …
-} > /etc/crypttab.initramfs
+} > /etc/crypttab
 ```
 
 === Generate initramfs
