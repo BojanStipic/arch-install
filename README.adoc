@@ -28,6 +28,7 @@ reboot
 ```
 
 Use prepared installation medium to boot into the live environment.
+The firmware needs to be placed into Secure Boot Setup Mode.
 
 == Connect to the internet:
 
@@ -166,6 +167,19 @@ sed -i -E \
 
 mkdir --parents '/efi/EFI/Linux'
 mkinitcpio --allpresets
+```
+
+=== Setup Secure Boot
+
+```bash
+sbctl create-keys
+sbctl sign --save \
+    --output /usr/lib/systemd/boot/efi/systemd-bootx64.efi.signed \
+    /usr/lib/systemd/boot/efi/systemd-bootx64.efi
+sbctl sign --save /efi/EFI/Linux/arch-linux.efi
+sbctl sign --save /efi/EFI/Linux/arch-linux-fallback.efi
+sbctl enroll-keys -m -f
+sbctl status
 ```
 
 === Setup the bootloader
