@@ -159,7 +159,7 @@ arch-chroot /mnt
 ```bash
 echo 'root=LABEL=main rootflags=noatime,compress=zstd,subvol=@ rw zswap.enabled=0 quiet' > /etc/kernel/cmdline
 
-sed -i -E "s/^(HOOKS).*/\1=(base systemd keyboard autodetect microcode modconf kms sd-vconsole sd-encrypt block filesystems fsck)/" /etc/mkinitcpio.conf
+sed -i -E 's/^(HOOKS).*/\1=(base systemd keyboard autodetect microcode modconf kms sd-vconsole sd-encrypt block filesystems fsck)/' /etc/mkinitcpio.conf
 sed -i -E \
     -e 's/^(default_image|fallback_image)/#\1/' \
     -e 's/^#(default_uki|default_options|fallback_uki|fallback_options)/\1/' \
@@ -303,7 +303,7 @@ sudo pacman -Syuu --needed - < pkglist-XY
 Install AUR packages:
 
 ```bash
-git clone "https://aur.archlinux.org/paru.git"
+git clone 'https://aur.archlinux.org/paru.git'
 (cd paru && makepkg -si)
 paru -Sa - < pkglist-XY-aur
 ```
