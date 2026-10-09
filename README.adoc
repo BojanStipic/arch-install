@@ -40,10 +40,10 @@ Wi-Fi:: Use `iwctl` to connect to a network.
 
 Use `fdisk` to create a new empty GPT partition table (option `g`).
 
-=== Setup the boot partition
+=== Setup the EFI system partition
 
-. Create EFI partition of type `uefi` that has at least 1 GB of space.
-. Format the partition using FAT32 file system: `mkfs.fat -F 32 -n boot /dev/sdXY`.
+. Create a partition of type `uefi` that has at least 1 GB of space.
+. Format the partition using FAT32 file system: `mkfs.fat -F 32 -n efi /dev/sdXY`.
 
 === Setup the main partition
 
@@ -100,7 +100,7 @@ umount /mnt
 mount --mkdir LABEL=main -o noatime,compress=zstd,subvol=@ /mnt
 mount --mkdir LABEL=main -o noatime,compress=zstd,subvol=@home /mnt/home
 mount --mkdir LABEL=main -o noatime,compress=zstd,subvol=@snapshots /mnt/snapshots
-mount --mkdir LABEL=boot /mnt/boot
+mount --mkdir LABEL=efi /mnt/efi
 ```
 
 == Bootstrap the system
@@ -138,7 +138,7 @@ arch-chroot /mnt
     echo 'LABEL=main / btrfs noatime,compress=zstd,subvol=@ 0 0'
     echo 'LABEL=main /home btrfs noatime,compress=zstd,subvol=@home 0 0'
     echo 'LABEL=main /snapshots btrfs noatime,compress=zstd,subvol=@snapshots 0 0'
-    echo 'LABEL=boot /boot vfat defaults 0 2'
+    echo 'LABEL=efi /efi vfat defaults 0 2'
 } > /etc/fstab
 ```
 
@@ -153,36 +153,25 @@ arch-chroot /mnt
 } > /etc/crypttab
 ```
 
-=== Generate initramfs
+=== Generate Unified Kernel Images (UKIs)
 
 ```bash
+echo 'root=LABEL=main rootflags=noatime,compress=zstd,subvol=@ rw zswap.enabled=0 quiet' > /etc/kernel/cmdline
+
 sed -i -E "s/^(HOOKS).*/\1=(base systemd keyboard autodetect microcode modconf kms sd-vconsole sd-encrypt block filesystems fsck)/" /etc/mkinitcpio.conf
+sed -i -E \
+    -e 's/^(default_image|fallback_image)/#\1/' \
+    -e 's/^#(default_uki|default_options|fallback_uki|fallback_options)/\1/' \
+    /etc/mkinitcpio.d/linux.preset
+
+mkdir --parents '/efi/EFI/Linux'
 mkinitcpio --allpresets
 ```
 
-=== Setup a bootloader
+=== Setup the bootloader
 
 ```bash
 bootctl install
-
-{
-    echo "default arch"
-    echo "editor no"
-} >> /boot/loader/loader.conf
-
-{
-    echo "title Arch GNU/Linux"
-    echo "linux /vmlinuz-linux"
-    echo "initrd /initramfs-linux.img"
-    echo "options root=LABEL=main rootflags=subvol=@,compress=zstd,noatime rw zswap.enabled=0 quiet"
-} >> /boot/loader/entries/arch.conf
-
-{
-    echo "title Arch GNU/Linux (fallback initramfs)"
-    echo "linux /vmlinuz-linux"
-    echo "initrd /initramfs-linux-fallback.img"
-    echo "options root=LABEL=main rootflags=subvol=@,compress=zstd,noatime rw zswap.enabled=0 quiet"
-} >> /boot/loader/entries/arch-fallback.conf
 ```
 
 === Configure timezone
