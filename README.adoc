@@ -38,22 +38,17 @@ Wi-Fi:: Use `iwctl` to connect to a network.
 
 === Setup the partition table
 
-UEFI systems:: Use `gdisk` and create a GPT partition table
-BIOS systems:: Use `fdisk` and create a MBR partition table
+Use `fdisk` to create a new empty GPT partition table (option `g`).
 
 === Setup the boot partition
 
-UEFI systems::
-.. Create EFI partition of type `ef00` that has at least 1 GB of space
-.. Format the partition using FAT32 file system: `mkfs.fat -F 32 -n boot /dev/sdXY`
-BIOS systems::
-.. Create boot partition of type `8300` that has at least 1 GB of space
-.. Format the partition using Ext4 file system: `mkfs.ext4 -L boot /dev/sdXY`
+. Create EFI partition of type `uefi` that has at least 1 GB of space.
+. Format the partition using FAT32 file system: `mkfs.fat -F 32 -n boot /dev/sdXY`.
 
 === Setup the main partition
 
 Use the rest of unallocated space on all of the remaining drives to create
-partitions of type `8300`.
+partitions of type `linux`.
 
 Encrypt all partitions using dm-crypt:
 
@@ -143,10 +138,7 @@ arch-chroot /mnt
     echo 'LABEL=main / btrfs noatime,compress=zstd,subvol=@ 0 0'
     echo 'LABEL=main /home btrfs noatime,compress=zstd,subvol=@home 0 0'
     echo 'LABEL=main /snapshots btrfs noatime,compress=zstd,subvol=@snapshots 0 0'
-    # On UEFI systems
     echo 'LABEL=boot /boot vfat defaults 0 2'
-    # On BIOS systems
-    echo 'LABEL=boot /boot ext4 defaults 0 2'
 } > /etc/fstab
 ```
 
@@ -170,8 +162,6 @@ mkinitcpio --allpresets
 
 === Setup a bootloader
 
-UEFI systems::
-+
 ```bash
 bootctl install
 
@@ -193,15 +183,6 @@ bootctl install
     echo "initrd /initramfs-linux-fallback.img"
     echo "options root=LABEL=main rootflags=subvol=@,compress=zstd,noatime rw zswap.enabled=0 quiet"
 } >> /boot/loader/entries/arch-fallback.conf
-```
-BIOS systems::
-+
-```bash
-pacman -S grub os-prober
-grub-install /dev/sdXY
-sed -i -E 's/^(GRUB_TIMEOUT).*/\1=1/' /etc/default/grub
-sed -i -E 's/^(GRUB_TIMEOUT_STYLE).*/\1=hidden/' /etc/default/grub
-grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
 === Configure timezone
