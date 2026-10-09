@@ -130,6 +130,17 @@ arch-chroot /mnt
 
 == Configure the system
 
+=== Generate `crypttab`
+
+```bash
+{
+    echo '# <name> <device> <password> <options>'
+    echo 'main1 LABEL=main-crypto1 none x-initrd.attach,discard,no-read-workqueue,no-write-workqueue,fido2-device=auto'
+    echo 'main2 LABEL=main-crypto2 none x-initrd.attach,discard,no-read-workqueue,no-write-workqueue,fido2-device=auto'
+    # …
+} > /etc/crypttab
+```
+
 === Generate `fstab`
 
 ```bash
@@ -140,17 +151,6 @@ arch-chroot /mnt
     echo 'LABEL=main /snapshots btrfs noatime,compress=zstd,subvol=@snapshots 0 0'
     echo 'LABEL=efi /efi vfat defaults 0 2'
 } > /etc/fstab
-```
-
-=== Generate `crypttab`
-
-```bash
-{
-    echo '# <name> <device> <password> <options>'
-    echo 'main1 LABEL=main-crypto1 none x-initrd.attach,discard,no-read-workqueue,no-write-workqueue,fido2-device=auto'
-    echo 'main2 LABEL=main-crypto2 none x-initrd.attach,discard,no-read-workqueue,no-write-workqueue,fido2-device=auto'
-    # …
-} > /etc/crypttab
 ```
 
 === Generate Unified Kernel Images (UKIs)
