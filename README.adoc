@@ -101,7 +101,7 @@ umount /mnt
 mount --mkdir LABEL=main -o noatime,compress=zstd,subvol=@ /mnt
 mount --mkdir LABEL=main -o noatime,compress=zstd,subvol=@home /mnt/home
 mount --mkdir LABEL=main -o noatime,compress=zstd,subvol=@snapshots /mnt/snapshots
-mount --mkdir LABEL=efi /mnt/efi
+mount --mkdir --options umask=0077 LABEL=efi /mnt/efi
 ```
 
 == Bootstrap the system
@@ -150,7 +150,7 @@ arch-chroot /mnt
     echo 'LABEL=main / btrfs noatime,compress=zstd,subvol=@ 0 0'
     echo 'LABEL=main /home btrfs noatime,compress=zstd,subvol=@home 0 0'
     echo 'LABEL=main /snapshots btrfs noatime,compress=zstd,subvol=@snapshots 0 0'
-    echo 'LABEL=efi /efi vfat defaults 0 2'
+    echo 'LABEL=efi  /efi vfat umask=0077 0 2'
 } > /etc/fstab
 ```
 
