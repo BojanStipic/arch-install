@@ -58,11 +58,14 @@ partitions of type `8300`.
 Encrypt all partitions using dm-crypt:
 
 ```bash
-cp /dev/urandom /dev/sdXY
 cryptsetup luksFormat --type luks2 --label main-crypto[1-N] /dev/sdXY
 systemd-cryptenroll --fido2-device=auto /dev/sdXY
 cryptsetup open /dev/disk/by-label/main-crypto[1-N] main[1-N]
 ```
+
+NOTE: If you need to conceal which disk sectors are used vs unused, fill the
+partition with random data using `cp /dev/urandom /dev/sdXY` before running
+`cryptsetup luksFormat` and disable `discard` option in `crypttab`.
 
 Format all partitions using Btrfs file system and add them to Btrfs RAID1:
 
