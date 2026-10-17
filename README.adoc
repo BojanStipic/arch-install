@@ -282,7 +282,7 @@ pamu2fcfg --nouser | sudo tee --append /etc/u2f_keys
 === Configure PAM auth with U2F/FIDO2 keys
 
 ```bash
-sed -i -E '/pam_faillock.so\s+preauth/a auth sufficient pam_u2f.so authfile=/etc/u2f_keys cue pinverification=1' /etc/pam.d/system-auth
+sed -i -E '/pam_faillock.so\s+preauth/a auth [success=3 default=ignore] pam_u2f.so authfile=/etc/u2f_keys cue pinverification=1' /etc/pam.d/system-auth
 ```
 
 == Reboot
