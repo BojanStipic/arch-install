@@ -415,6 +415,7 @@ sudo systemctl enable --now greetd
 sudo systemctl enable --now btrfs-scrub@-.timer
 sudo systemctl enable --now systemd-boot-update
 sudo systemctl enable --now systemd-timesyncd
+sudo systemctl enable --now ufw
 sudo systemctl enable --now docker
 sudo systemctl enable --now cups
 sudo systemctl enable --now bluetooth
