@@ -116,11 +116,13 @@ pacstrap -K /mnt \
     base \
     base-devel \
     btrfs-progs \
+    sbctl \
     libfido2 \
     pam-u2f \
     fish \
     neovim \
-    tmux
+    tmux \
+    git
 ```
 
 Chroot into the new system:
