@@ -209,6 +209,12 @@ locale-gen
 } > /etc/locale.conf
 ```
 
+=== Configure keyboard layouts
+
+```bash
+localectl set-x11-keymap 'us,rs,rs' '' ',latin,' 'ctrl:nocaps'
+```
+
 === Configure Pacman
 
 ```bash
