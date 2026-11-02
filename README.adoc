@@ -419,6 +419,7 @@ sudo systemctl enable --now ufw
 sudo systemctl enable --now docker
 sudo systemctl enable --now cups
 sudo systemctl enable --now bluetooth
+systemctl enable --user --now gcr-ssh-agent.socket
 ```
 
 == License
